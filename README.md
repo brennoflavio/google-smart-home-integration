@@ -29,3 +29,14 @@ There is 2 one way sync in this repo that is meant to use as cron jobs:
 They fetch data from Google, create the respective data in your Nextcloud and then deletes the data from Google.
 This way when you say "Ok google create event test", the event will be created in Google Calendar, but then synced
 to Nextcloud Calendar, so the end effect is like Google creating the event in your calendar.
+
+## Google Keep
+
+Google Keep does not have an Oauth API for free, so we rely on a mobile token and `gkeepapi` library. To use it, you'll
+need to generate a master token and save it in the environemnt variable `GOOGLE_KEEP_MASTER_TOKEN`, and also save your
+Google Account email in the variable `GOOGLE_KEEP_USER`. The steps includes
+creating an app password and running a Docker command. You can find it [here](https://github.com/djsudduth/keep-it-markdown/issues/72#issuecomment-1793495242)
+
+There is 2 things that are synced from Keep: Shopping list and Notes.
+
+You can specificy a Shopping List name from Keep and a Task List from Nextlcoud to sync your shopping list, and for Notes it will sync to your Nextcloud Notes app.

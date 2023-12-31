@@ -5,6 +5,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from dateutil.parser import parse
 from datetime import datetime, timedelta
+import gkeepapi
 
 SCOPES = [
     "https://www.googleapis.com/auth/tasks",
@@ -146,3 +147,59 @@ def delete_calendar_event(id):
     service.events().delete(
         calendarId=load_and_assert("GOOGLE_CALENDAR_ID"), eventId=id
     ).execute()
+
+
+def get_keep_service():
+    keep = gkeepapi.Keep()
+    keep.resume(
+        load_and_assert("GOOGLE_KEEP_USER"), load_and_assert("GOOGLE_KEEP_MASTER_TOKEN")
+    )
+    return keep
+
+
+def get_shopping_list():
+    service = get_keep_service()
+    lists = [
+        x
+        for x in service.all()
+        if isinstance(x, gkeepapi.node.List)
+        and x.title == load_and_assert("GOOGLE_KEEP_SHOPPINGLIST_NAME")
+    ]
+    shopping_list = lists[0]
+    return [x.text for x in shopping_list.unchecked]
+
+
+def clear_shopping_list():
+    service = get_keep_service()
+    lists = [
+        x
+        for x in service.all()
+        if isinstance(x, gkeepapi.node.List)
+        and x.title == load_and_assert("GOOGLE_KEEP_SHOPPINGLIST_NAME")
+    ]
+    shopping_list = lists[0]
+
+    for item in shopping_list.items:
+        item.delete()
+
+    service.sync()
+
+
+def get_notes():
+    service = get_keep_service()
+    notes = [x for x in service.all() if isinstance(x, gkeepapi.node.Note)]
+    return [
+        {
+            "title": x.title,
+            "text": x.text,
+        }
+        for x in notes
+    ]
+
+
+def clear_notes():
+    service = get_keep_service()
+    notes = [x for x in service.all() if isinstance(x, gkeepapi.node.Note)]
+    for note in notes:
+        note.delete()
+    service.sync()
