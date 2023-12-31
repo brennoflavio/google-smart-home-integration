@@ -83,6 +83,7 @@ def get_tasks(result_number=50):
         .execute()
     )
     tasks = tasks.get("items", [])
+    do_not_sync = load_and_assert("GOOGLE_TASKS_DO_NOT_SYNC").split(",")
 
     return [
         {
@@ -91,6 +92,7 @@ def get_tasks(result_number=50):
             "title": x["title"],
         }
         for x in tasks
+        if x["title"] not in do_not_sync
     ]
 
 

@@ -30,6 +30,8 @@ They fetch data from Google, create the respective data in your Nextcloud and th
 This way when you say "Ok google create event test", the event will be created in Google Calendar, but then synced
 to Nextcloud Calendar, so the end effect is like Google creating the event in your calendar.
 
+In case you don't want to sync some tasks, list their names in the GOOGLE_TASKS_DO_NOT_SYNC variable, comma separated.
+
 ## Google Keep
 
 Google Keep does not have an Oauth API for free, so we rely on a mobile token and `gkeepapi` library. To use it, you'll
