@@ -8,6 +8,8 @@ from google_helpers import (
 from variables import load_and_assert
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+from privacy_policy import privacy_policy
+
 
 app = Flask(__name__)
 app.secret_key = load_and_assert("SECRET_ID")
@@ -56,6 +58,11 @@ def oauth2callback():
         state, build_secure_url("oauth2callback", _external=True), request.url
     )
     return redirect("/")
+
+
+@app.route("/privacy")
+def privacy():
+    return privacy_policy
 
 
 if __name__ == "__main__":
