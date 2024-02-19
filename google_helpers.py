@@ -6,6 +6,7 @@ from google_auth_oauthlib.flow import Flow
 from dateutil.parser import parse
 from datetime import datetime, timedelta
 import gkeepapi
+import re
 
 SCOPES = [
     "https://www.googleapis.com/auth/tasks",
@@ -159,7 +160,7 @@ def get_keep_service():
     return keep
 
 
-def get_shopping_list():
+def get_shopping_list(filter_note_regex=None):
     service = get_keep_service()
     lists = [
         x
@@ -168,10 +169,13 @@ def get_shopping_list():
         and x.title == load_and_assert("GOOGLE_KEEP_SHOPPINGLIST_NAME")
     ]
     shopping_list = lists[0]
-    return [x.text for x in shopping_list.unchecked]
+    parsed_notes = [x.text for x in shopping_list.unchecked]
+    if filter_note_regex:
+        parsed_notes = [re.sub(filter_note_regex, "", x) for x in parsed_notes if re.search(filter_note_regex, x, re.IGNORECASE)]
+    return parsed_notes
 
 
-def clear_shopping_list():
+def clear_shopping_list(filter_note_regex=None):
     service = get_keep_service()
     lists = [
         x
@@ -182,26 +186,40 @@ def clear_shopping_list():
     shopping_list = lists[0]
 
     for item in shopping_list.items:
-        item.delete()
+        if filter_note_regex:
+            if re.search(filter_note_regex, item.text, re.IGNORECASE):
+                item.delete()
+        else:
+            item.delete()
 
     service.sync()
 
 
-def get_notes():
+def get_notes(filter_note_regex=None):
     service = get_keep_service()
     notes = [x for x in service.all() if isinstance(x, gkeepapi.node.Note)]
-    return [
+    parsed_notes = [
         {
             "title": x.title,
             "text": x.text,
         }
         for x in notes
     ]
+    if filter_note_regex:
+        parsed_notes = [x for x in parsed_notes if re.search(filter_note_regex, x["title"] + " " + x["text"], re.IGNORECASE)]
+        for row in parsed_notes:
+            row["title"] = re.sub(filter_note_regex, "", row["title"])
+            row["text"] = re.sub(filter_note_regex, "", row["text"])
+    return parsed_notes
 
 
-def clear_notes():
+def clear_notes(filter_note_regex=None):
     service = get_keep_service()
     notes = [x for x in service.all() if isinstance(x, gkeepapi.node.Note)]
     for note in notes:
-        note.delete()
+        if filter_note_regex:
+            if re.search(filter_note_regex, note.title + " " + note.text, re.IGNORECASE):
+                note.delete()
+        else:
+            note.delete()
     service.sync()
