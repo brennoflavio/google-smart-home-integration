@@ -1,5 +1,5 @@
 import google_helpers
-import nextcloud_helpers
+import nextcloud_helpers as nextcloud_helpers
 from variables import load, load_and_assert
 
 

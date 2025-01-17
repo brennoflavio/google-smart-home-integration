@@ -1,5 +1,5 @@
 import google_helpers
-import nextcloud_helpers
+import nextcloud_helpers as nextcloud_helpers
 from datetime import datetime, timedelta, timezone
 
 

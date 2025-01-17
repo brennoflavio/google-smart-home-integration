@@ -4,9 +4,10 @@ import os
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from dateutil.parser import parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import gkeepapi
 import re
+import json
 
 SCOPES = [
     "https://www.googleapis.com/auth/tasks",
@@ -17,8 +18,21 @@ SCOPES = [
 def get_credentials():
     user_file = load_and_assert("GOGLE_AUTHORIZED_USER_FILE")
     if os.path.exists(user_file):
-        creds = Credentials.from_authorized_user_file(user_file, SCOPES)
-        return creds
+        try:
+            with open(user_file) as f:
+                expiry = json.loads(f.read()).get("expiry")
+                if expiry:
+                    expiry = parse(expiry)
+                    if expiry < datetime.now(timezone.utc):
+                        os.remove(user_file)
+                        return None
+                else:
+                    os.remove(user_file)
+                    return None
+            creds = Credentials.from_authorized_user_file(user_file, SCOPES)
+            return creds
+        except Exception:
+            return None
     return None
 
 
@@ -140,6 +154,8 @@ def getlist_calendar_events():
     )
     final = []
     for row in events_result.get("items", []):
+        if row.get("eventType", "") == "birthday":
+            continue
         final.append(parse_google_calendar_json(row))
 
     return final
